@@ -3,5 +3,3 @@
 Reviewer: Marea Cobb
 
 Group: 1
-
-Code adapted from Raphael Gottardo.
