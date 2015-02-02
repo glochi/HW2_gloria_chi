@@ -1,0 +1,64 @@
+---
+title: "HW2"
+author: "Gloria Chi"
+date: "February 1, 2015"
+output: html_document
+---
+
+Load libraries
+
+```{r}
+library(GEOmetadb)
+library(data.table)
+```
+
+Download GEOmetadb database
+```{r}
+## This will download the entire database, so can be slow
+if(!file.exists("GEOmetadb.sqlite"))
+{
+  # Download database only if it's not done already
+  getSQLiteFile()
+}
+```
+Connect to GEOmetadb
+```{r}
+geo_con <- dbConnect(SQLite(),'GEOmetadb.sqlite')
+```
+
+Figure out what components are in each table
+```{r}
+dbListTables(geo_con)
+dbListFields(geo_con, 'gse')
+dbListFields(geo_con, 'gpl')
+dbListFields(geo_con, 'gse_gpl')
+```
+
+Query the database using the GEOmetabd package
+```{r}
+dbGetQuery(geo_con, "SELECT gse.title, gse.gse, gpl.gpl, gpl.manufacturer, gpl.description FROM (gse JOIN gse_gpl ON gse.gse=gse_gpl.gse) j JOIN gpl ON j.gpl=gpl.gpl WHERE gse.summary LIKE '%HCV%' AND gpl.Title LIKE '%Illumina%' AND gse.contact LIKE '% Yale %'")
+```
+
+Convert all db tables to data.table tables
+```{r}
+gse.dt <-data.table(dbGetQuery(geo_con,"SELECT * FROM gse"))
+gse_gpl.dt <-data.table(dbGetQuery(geo_con,"SELECT * FROM gse_gpl"))
+gpl.dt <-data.table(dbGetQuery(geo_con,"SELECT * FROM gpl"))
+```
+
+Merge the data tables
+```{r}
+setkey(gse.dt,gse)
+setkey(gse_gpl.dt, gse)
+
+j.dt = gse.dt[gse_gpl.dt]
+
+setkey(j.dt,gpl)
+setkey(gpl.dt,gpl)
+final.dt<-j.dt[gpl.dt]
+```
+Query using data.table
+
+```{r}
+final.dt[summary %like% 'HCV' & manufacturer %like% 'Illumina' & contact %like% 'Yale',list(title,gse,gpl,manufacturer,description)]
+```
