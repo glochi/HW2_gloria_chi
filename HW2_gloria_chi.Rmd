@@ -31,12 +31,13 @@ Figure out what components are in each table
 dbListTables(geo_con)
 dbListFields(geo_con, 'gse')
 dbListFields(geo_con, 'gpl')
+dbListFields(geo_con, 'gsm')
 dbListFields(geo_con, 'gse_gpl')
 ```
 
 Query the database using the GEOmetabd package
 ```{r}
-dbGetQuery(geo_con, "SELECT gse.title, gse.gse, gpl.gpl, gpl.manufacturer, gpl.description FROM (gse JOIN gse_gpl ON gse.gse=gse_gpl.gse) j JOIN gpl ON j.gpl=gpl.gpl WHERE gse.summary LIKE '%HCV%' AND gpl.Title LIKE '%Illumina%' AND gse.contact LIKE '% Yale %'")
+dbGetQuery(geo_con, "SELECT gse.title, gse.gse, gpl.gpl, gpl.manufacturer, gpl.description FROM (gse JOIN gse_gpl ON gse.gse=gse_gpl.gse) j JOIN gpl ON j.gpl=gpl.gpl WHERE (gse.summary LIKE '%HCV%' OR gse.title LIKE '%HCV%') AND gpl.manufacturer LIKE '%Illumina%' AND gse.contact LIKE '% Yale %'")
 ```
 
 Convert all db tables to data.table tables
@@ -60,5 +61,5 @@ final.dt<-j.dt[gpl.dt]
 Query using data.table
 
 ```{r}
-final.dt[summary %like% 'HCV' & manufacturer %like% 'Illumina' & contact %like% 'Yale',list(title,gse,gpl,manufacturer,description)]
+final.dt[(summary %like% 'HCV'| title %like% 'HCV') & manufacturer %like% 'Illumina' & contact %like% ' Yale ',list(title,gse,gpl,manufacturer,description)]
 ```
