@@ -49,7 +49,8 @@ gpl.dt <-data.table(dbGetQuery(geo_con,"SELECT * FROM gpl;"), key="gpl")
 Merge the data tables and query using data.table
 
 ```{r}
-gpl.dt[gse_gpl.dt[gse.dt[(summary %like% 'HCV'| title %like%
+
+gpl.dt[(data.table(dbGetQuery(geo_con,"SELECT * FROM gse_gpl;"), key=c ("gse", "gpl")))[(data.table(dbGetQuery(geo_con,"SELECT * FROM gse;"), key="gse"))[(summary %like% 'HCV'| title %like%
 'HCV') & contact %like% ' Yale ', list(gse, title)], list(gpl, i.gse,
 title), nomatch=0], list(gpl, i.gse, title, manufacturer, description),
 nomatch=0][manufacturer %like% 'Illumina']
@@ -59,6 +60,13 @@ nomatch=0][manufacturer %like% 'Illumina']
 Convert, merge, and subset all one line, but hard to read
 
 ```{r}
+#Using brackets
+(data.table(dbGetQuery(geo_con,"SELECT * FROM gpl;"), key="gpl"))[gse_gpl.dt[gse.dt[(summary %like% 'HCV'| title %like%
+'HCV') & contact %like% ' Yale ', list(gse, title)], list(gpl, i.gse,
+title), nomatch=0], list(gpl, i.gse, title, manufacturer, description),
+nomatch=0][manufacturer %like% 'Illumina']
+
+#Using merge
 merge(data.table(dbGetQuery(geo_con,"SELECT gpl, manufacturer, description FROM gpl WHERE manufacturer LIKE '%Illumina%';"), key="gpl"), (merge(data.table(dbGetQuery(geo_con,"SELECT title, gse FROM gse WHERE contact LIKE '% Yale %' AND (summary LIKE '%HCV%' OR title LIKE '%HCV%');"), key="gse"), data.table(dbGetQuery(geo_con,"SELECT * FROM gse_gpl;"), key=c("gse", "gpl")), by="gse")), by="gpl")
 
 
