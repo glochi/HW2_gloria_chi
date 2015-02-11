@@ -42,24 +42,29 @@ dbGetQuery(geo_con, "SELECT gse.title, gse.gse, gpl.gpl, gpl.manufacturer, gpl.d
 
 Convert all db tables to data.table tables
 ```{r}
-gse.dt <-data.table(dbGetQuery(geo_con,"SELECT * FROM gse"))
-gse_gpl.dt <-data.table(dbGetQuery(geo_con,"SELECT * FROM gse_gpl"))
-gpl.dt <-data.table(dbGetQuery(geo_con,"SELECT * FROM gpl"))
+gse.dt <-data.table(dbGetQuery(geo_con,"SELECT * FROM gse;"), key="gse")
+gse_gpl.dt <-data.table(dbGetQuery(geo_con,"SELECT * FROM gse_gpl;"), key=c ("gse", "gpl"))
+gpl.dt <-data.table(dbGetQuery(geo_con,"SELECT * FROM gpl;"), key="gpl")
 ```
-
 Merge the data tables
 ```{r}
-setkey(gse.dt,gse)
-setkey(gse_gpl.dt, gse)
+dt1 = gse.dt[gse_gpl.dt]
+setkey(dt1,gpl)
+final<-dt1[gpl.dt]
 
-j.dt = gse.dt[gse_gpl.dt]
-
-setkey(j.dt,gpl)
-setkey(gpl.dt,gpl)
-final.dt<-j.dt[gpl.dt]
 ```
 Query using data.table
 
 ```{r}
-final.dt[(summary %like% 'HCV'| title %like% 'HCV') & manufacturer %like% 'Illumina' & contact %like% ' Yale ',list(title,gse,gpl,manufacturer,description)]
+final[(summary %like% 'HCV'| title %like% 'HCV') & manufacturer %like% 'Illumina' & contact %like% ' Yale ',list(title,gse,gpl,manufacturer,description)]
+
+```
+
+All one line, but hard to read
+
+```{r}
+
+merge(data.table(dbGetQuery(geo_con,"SELECT gpl, manufacturer, description FROM gpl WHERE manufacturer LIKE '%Illumina%';"), key="gpl"), (merge(data.table(dbGetQuery(geo_con,"SELECT title, gse FROM gse WHERE contact LIKE '% Yale %' AND (summary LIKE '%HCV%' OR title LIKE '%HCV%');"), key="gse"), data.table(dbGetQuery(geo_con,"SELECT * FROM gse_gpl;"), key=c("gse", "gpl")), by="gse")), by="gpl")
+
+
 ```
