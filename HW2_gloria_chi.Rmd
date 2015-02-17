@@ -71,3 +71,9 @@ merge(data.table(dbGetQuery(geo_con,"SELECT gpl, manufacturer, description FROM 
 
 
 ```
+
+```
+##                          gse.title                                      gse.gse     gpl.gpl   gpl.manufacturer                     gpl.title
+## 1 The blood transcriptional signature of chronic HCV [Illumina data]   GSE40223    GPL10558    Illumina Inc.     Illumina HumanHT-12 V4.0 expression beadchip
+## 2                 The blood transcriptional signature of chronic HCV   GSE40224    GPL10558    Illumina Inc.     Illumina HumanHT-12 V4.0 expression beadchip
+```
